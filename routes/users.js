@@ -23,27 +23,33 @@ usersRoutes.get('/', async (req, res) => {
 
 usersRoutes.get("/:id", async (req, res) => {
   let user = await User.findByPk(req.params.id);
-  res.send(user);
+  if (user) {
+    res.send(user);
+  } else {
+    res.status(404).send({ error: "User not found" });
+  }
 });
 
 usersRoutes.get("/:id/shows", async (req, res) => {
-  let userShows = await User.findByPk(req.params.id, {
-    include: { model: Show },
-  });
+  let userShows = await User.findByPk(req.params.id, {include: { model: Show },});
   if (!userShows){
-    return res.stattus(404).send({err:'no show found'})
+    res.status(404).send({err:'no show found'})
   } 
-  res.send(userShows);
+  else{res.send(userShows); }
 });
 
 usersRoutes.put("/:id/shows/:show_id", async (req, res) => {
   let user = await User.findByPk(req.params.id);
    let show = await Show.findByPk(req.params.show_id);
-    await user.addShow(show);
-  let updateShow = await User.findByPk(req.params.id, {
-    include: { model: Show, where: { id: req.params.show_id } },
-  });
-  res.send(updateShow);
+   if (user && show) {
+     await user.addShow(show);
+     let updateShow = await User.findByPk(req.params.id, {
+       include: { model: Show, where: { id: req.params.show_id } },
+     });
+     res.send(updateShow);
+   } else {
+     res.status(404).send({ error: "user or show not found" });
+   }
 });
 
 

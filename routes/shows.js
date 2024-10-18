@@ -8,11 +8,9 @@ showsRoutes.get('/', async (req, res) => {
   let genre = req.query.genre;
   if(genre){
     let show = await Show.findAll({ where: { genre: genre } });
-    console.log(show, "show");
     res.send(show);
   }else {
     let allShows = await Show.findAll();
-    console.log(req.query.genre, "<<<<req.query.genre");
     res.send(allShows);
   }
   
@@ -20,8 +18,12 @@ showsRoutes.get('/', async (req, res) => {
 
 showsRoutes.get("/:id", async (req, res) => {
   console.log(req.query, "<<<<req.params");
-  let user = await Show.findByPk(req.params.id);
-  res.send(user);
+  let show = await Show.findByPk(req.params.id);
+  if (show) {
+    res.send(show);
+  } else {
+    res.status(404).send({error: 'show not found'})
+  }
 });
 
 showsRoutes.get("/:id/users", async (req, res) => {
@@ -30,30 +32,31 @@ showsRoutes.get("/:id/users", async (req, res) => {
 });
 
 
-showsRoutes.get("/genre/:genre", async (req, res) => {
-  console.log(req.query.genre, "<<<<req.query.genre");
+// showsRoutes.get("/genre/:genre", async (req, res) => {
+//   let show = await Show.findAll({ where: { genre: req.params.genre } });
+//   res.send(show);
+// });
 
-  let show = await Show.findAll({ where: { genre: req.params.genre } });
-  console.log(show, "show");
+showsRoutes.post("/",[check("title").isLength({ min: 1, max: 25 })],
+  async (req, res) => {
+    let errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(404).send({ err: "Title must be at least 2 and most 25 characters long" });
+    } else {
+      let data = req.body;
+      let show = await Show.create(data);
+      res.send(show);
+    }
+  }
+);
 
-  res.send(show);
-});
-
-//  showsRoutes.get("/filter", async (req, res) => {
-//    const genre = req.query.genre;
-//    const found = await Show.findAll({ where: { genre: genre } });
-//    res.json(found);
-//  });
-
-showsRoutes.put("/:id/:props", [check('title').isLength({max:25})], async (req, res) => {
-  let errors = validationResult(res)
+showsRoutes.put("/:id/:props", [check('title').isLength({min: 1, max: 25})], async (req, res) => {
+  let errors = validationResult(req)
   if(!errors.isEmpty()){
-    res.json({errors: errors.array()});
-  }{
+    res.status(404).send({ err: "Title must be at least 2 and most 25 characters long" });
+  }else {
     let show = await Show.findByPk(req.params.id);
-    let data = {
-      available : !show.available
-    };
+    let data = {available : !show.available};
     let updatedShow = await show.update(data);
     res.send(updatedShow);
   }
