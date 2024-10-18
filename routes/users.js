@@ -30,6 +30,9 @@ usersRoutes.get("/:id/shows", async (req, res) => {
   let userShows = await User.findByPk(req.params.id, {
     include: { model: Show },
   });
+  if (!userShows){
+    return res.stattus(404).send({err:'no show found'})
+  } 
   res.send(userShows);
 });
 

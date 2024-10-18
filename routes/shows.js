@@ -5,12 +5,21 @@ const { check, validationResult } = require("express-validator");
 const showsRoutes = new Router();
 
 showsRoutes.get('/', async (req, res) => {
-    let allShows = await Show.findAll()
+  let genre = req.query.genre;
+  if(genre){
+    let show = await Show.findAll({ where: { genre: genre } });
+    console.log(show, "show");
+    res.send(show);
+  }else {
+    let allShows = await Show.findAll();
+    console.log(req.query.genre, "<<<<req.query.genre");
     res.send(allShows);
+  }
+  
 })
 
 showsRoutes.get("/:id", async (req, res) => {
-  console.log(req.params, "req.params");
+  console.log(req.query, "<<<<req.params");
   let user = await Show.findByPk(req.params.id);
   res.send(user);
 });
@@ -22,13 +31,19 @@ showsRoutes.get("/:id/users", async (req, res) => {
 
 
 showsRoutes.get("/genre/:genre", async (req, res) => {
-  console.log(req.params.genre, "<<<<req.params.genre");
+  console.log(req.query.genre, "<<<<req.query.genre");
 
   let show = await Show.findAll({ where: { genre: req.params.genre } });
   console.log(show, "show");
 
   res.send(show);
 });
+
+//  showsRoutes.get("/filter", async (req, res) => {
+//    const genre = req.query.genre;
+//    const found = await Show.findAll({ where: { genre: genre } });
+//    res.json(found);
+//  });
 
 showsRoutes.put("/:id/:props", [check('title').isLength({max:25})], async (req, res) => {
   let errors = validationResult(res)
